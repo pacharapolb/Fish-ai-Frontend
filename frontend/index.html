@@ -128,7 +128,8 @@
                     resultText.style.color = "#ff0055";
                 }
             } catch (error) {
-                resultText.innerText = "❌ ติดต่อหลังบ้านไม่ได้! ลืมเปิดเซิร์ฟป่าวพี่?";
+                const realError = data.message || JSON.stringify(data);
+                resultText.innerText = "❌ พังง่ะ: " + realError;
                 resultText.style.color = "#ff0055";
             } finally {
                 // เปิดปุ่มให้กดใหม่ได้
