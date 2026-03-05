@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI นับปลา: ส่องปั๊บ รู้ปุ๊บ!</title>
+    <style>
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+        }
+        .box { 
+            border: 2px dashed #00ffcc; 
+            padding: 20px; 
+            border-radius: 10px; 
+            display: inline-block; 
+            margin-top: 20px; 
+            max-width: 90%;
+        }
+        button { 
+            background: #00ffcc; 
+            color: black; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 5px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin-top: 15px; 
+            transition: 0.3s;
+        }
+        button:hover { 
+            background: #00ccaa; 
+            transform: scale(1.05);
+        }
+        button:disabled {
+            background: #555;
+            color: #aaa;
+            cursor: not-allowed;
+            transform: none;
+        }
+        img { 
+            max-width: 100%; 
+            height: auto;
+            margin-top: 15px; 
+            border-radius: 5px; 
+            box-shadow: 0 4px 8px rgba(0,255,204,0.2);
+        }
+        #result {
+            color: #00ffcc;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🐟 AI ตรวจนับลูกปลา 🚀</h1>
+    <p>กดปุ่มด้านล่างเพื่อถ่ายรูปจากกะละมัง หรืออัปโหลดรูปจากเครื่องเลยลูกพี่!</p>
+
+    <div class="box">
+        <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="previewImage(event)">
+        <br>
+        <img id="preview" style="display: none;">
+        <br>
+        <button id="submitBtn" onclick="sendToAI()">ส่งให้ AI ประมวลผล</button>
+    </div>
+
+    <h2 id="result"></h2>
+
+    <script>
+        // ฟังก์ชันโชว์รูปต้นฉบับก่อนส่ง
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const imgElement = document.getElementById('preview');
+                imgElement.src = reader.result;
+                imgElement.style.display = 'block';
+                document.getElementById('result').innerText = ""; // เคลียร์ข้อความเก่า
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        // ฟังก์ชันส่งรูปไปให้ Backend
+        async function sendToAI() {
+            const fileInput = document.getElementById('imageInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const resultText = document.getElementById('result');
+            const imgElement = document.getElementById('preview');
+
+            if (fileInput.files.length === 0) {
+                alert("เฮ้ยพี่! ใส่รูปปลาก่อนดิ!");
+                return;
+            }
+
+            // ปิดปุ่มกันคนกดรัวๆ และขึ้นข้อความรอ
+            submitBtn.disabled = true;
+            submitBtn.innerText = "กำลังใช้สมองกลคิด... ⏳";
+            resultText.innerText = "รอแป๊บนะพี่ AI กำลังเพ่งตาแตก... 🧐";
+            resultText.style.color = "#ffdd00";
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                // ⚠️ คำเตือนตัวโตๆ: เปลี่ยน URL ตรงนี้เป็นของ Render ที่พี่ได้มานะ!
+                const backendURL = "https://your-backend-url.onrender.com/predict"; 
+
+                const response = await fetch(backendURL, {
+                    method: "POST",
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if(data.status === "success") {
+                    // โชว์จำนวนปลาแบบเฟี้ยวๆ
+                    resultText.innerText = "🔥 " + data.message;
+                    resultText.style.color = "#00ffcc";
+                    
+                    // เอารูปที่ AI ตีกรอบแล้วมาโชว์ทับรูปเดิม
+                    imgElement.src = "data:image/jpeg;base64," + data.image_base64;
+                } else {
+                    resultText.innerText = "❌ พังง่ะ: " + data.message;
+                    resultText.style.color = "#ff0055";
+                }
+            } catch (error) {
+                resultText.innerText = "❌ ติดต่อหลังบ้านไม่ได้! ลืมเปิดเซิร์ฟป่าวพี่?";
+                resultText.style.color = "#ff0055";
+            } finally {
+                // เปิดปุ่มให้กดใหม่ได้
+                submitBtn.disabled = false;
+                submitBtn.innerText = "ส่งให้ AI ประมวลผล";
+            }
+        }
+    </script>
+</body>
+</html>
