@@ -106,7 +106,7 @@
             formData.append("file", fileInput.files[0]);
 
             try {
-                // ⚠️ คำเตือนตัวโตๆ: เปลี่ยน URL ตรงนี้เป็นของ Render ที่พี่ได้มานะ!
+                // ลิงก์ Render ถูกต้องเป๊ะแล้ว!
                 const backendURL = "https://fish-ai-backend.onrender.com/predict"; 
 
                 const response = await fetch(backendURL, {
@@ -121,25 +121,27 @@
                     resultText.innerText = "🔥 " + data.message;
                     resultText.style.color = "#00ffcc";
                     
-                    // เอารูปที่ AI ตีกรอบแล้วมาโชว์ทับรูปเดิม
-                    imgElement.src = "data:image/jpeg;base64," + data.image_base64;
+                    // เช็คว่าถ้าหลังบ้านส่งรูปตีกรอบ (Base64) กลับมา ถึงจะโชว์รูป
+                    if (data.image_base64) {
+                        imgElement.src = "data:image/jpeg;base64," + data.image_base64;
+                    }
                 } else {
-                    resultText.innerText = "❌ พังง่ะ: " + data.message;
+                    // ถ้าหลังบ้านแจ้งว่า Error (แต่ติดต่อได้นะ)
+                    const realError = data.message || JSON.stringify(data);
+                    resultText.innerText = "❌ พังง่ะ (โค้ดพัง): " + realError;
                     resultText.style.color = "#ff0055";
                 }
             } catch (error) {
-                const realError = data.message || JSON.stringify(data);
-                resultText.innerText = "❌ พังง่ะ: " + realError;
+                // 🚨 แก้บั๊กตรงนี้: ถ้าติดต่อ Render ไม่ได้ หรือเน็ตหลุด ให้พ่น error.message ออกมา
+                console.error("Fetch Error:", error);
+                resultText.innerText = "❌ ติดต่อหลังบ้านไม่ได้! (เซิร์ฟอาจจะหลับ): " + error.message;
                 resultText.style.color = "#ff0055";
             } finally {
-                // เปิดปุ่มให้กดใหม่ได้
+                // เปิดปุ่มให้กดใหม่ได้ ไม่ว่าจะสำเร็จหรือพัง
                 submitBtn.disabled = false;
                 submitBtn.innerText = "ส่งให้ AI ประมวลผล";
             }
         }
     </script>
 </body>
-
 </html>
-
-
